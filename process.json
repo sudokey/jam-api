@@ -1,0 +1,11 @@
+{
+    "apps": [
+        {
+            "name": "jam-api",
+            "script": "dist/app/server.js",
+            "watch": [
+                "dist/app"
+            ]
+        }
+    ]
+}

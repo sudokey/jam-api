@@ -1,0 +1,27 @@
+{
+    "compilerOptions": {
+        "sourceMap": true,
+        "target": "ES5",
+        "module": "commonjs",
+        "lib": ["es6"],
+        "allowJs": true,
+        "outDir": "dist",
+        "rootDir": "src",
+        "strict": true,
+        "esModuleInterop": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "strictPropertyInitialization": false,
+        "types": ["node"],
+        "skipLibCheck": true,
+        "baseUrl": ".",
+        "alwaysStrict": true,
+        "paths": {
+            "@/*": ["src/*"]
+        },
+    },
+    "include": ["src/**/*"],
+    "watchOptions": {
+        "excludeDirectories": ["node_modules", "dist"]
+    }
+}

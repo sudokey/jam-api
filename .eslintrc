@@ -1,0 +1,56 @@
+{
+    "extends": [
+        "airbnb-base",
+        "airbnb-typescript/base",
+        "plugin:editorconfig/all"
+    ],
+    "parserOptions": {
+        "project": [
+            "**/tsconfig.json"
+        ]
+    },
+    "plugins": [
+        "editorconfig",
+        "unused-imports"
+    ],
+    "rules": {
+        "semi": [
+            2,
+            "never"
+        ],
+        "@typescript-eslint/semi": [
+            2,
+            "never"
+        ],
+        "import/prefer-default-export": [
+            0
+        ],
+        "arrow-parens": [
+            0
+        ],
+        "import/order": [
+            "error",
+            {
+                "groups": [
+                    "builtin",
+                    "external",
+                    "parent",
+                    "internal",
+                    "sibling",
+                    "index",
+                    "object",
+                    "type"
+                ],
+                "newlines-between": "always"
+            }
+        ],
+        "import/extensions": [
+            "error",
+            "ignorePackages",
+            {
+                "": "never"
+            }
+        ],
+        "unused-imports/no-unused-imports-ts": "error"
+    }
+}
