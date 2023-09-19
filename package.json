@@ -6,7 +6,7 @@
     "scripts": {
         "build": "rimraf dist && tsc",
         "watch": "rimraf dist && tsc --watch",
-        "start": "npm run build && pm2-runtime process.json"
+        "server": "pm2-runtime process.json"
     },
     "keywords": [],
     "author": "",

@@ -2,4 +2,6 @@ FROM node:alpine
 
 WORKDIR /app
 
-CMD ["sh", "-c", "npm install && npm start"]
+COPY . .
+
+CMD ["sh", "-c", "npm ci && npm run build && npm run server"]

@@ -1,11 +1,11 @@
 version: "3.8"
 services:
-    nodeserver:
-        environment:
-            - PORT=2222
-        volumes:
-            - ./:/app
-        build:
-            context: ./
-        ports:
-            - "2222:2222"
+  nodeserver:
+    restart: always
+    image: {{ env.API_IMAGE }}
+    environment:
+      - PORT=2222
+    build:
+      context: ./
+    ports:
+      - "80:2222"
