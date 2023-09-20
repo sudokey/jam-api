@@ -1,14 +1,21 @@
+import 'module-alias/register'
+
 import { IO } from 'fp-ts/lib/IO'
 import { createServer, httpListener, r } from '@marblejs/http'
-import { mapTo } from 'rxjs/operators'
+import { map } from 'rxjs/operators'
 import { logger$ } from '@marblejs/middleware-logger'
 import { bodyParser$ } from '@marblejs/middleware-body'
+
+import { createDataSource } from '@/app/data'
+import { config } from '@/app/config'
+
+const dataSource = createDataSource(config)
 
 const api$ = r.pipe(
     r.matchPath('/'),
     r.matchType('GET'),
     r.useEffect(req$ => req$.pipe(
-        mapTo({ body: 'Jam!' }),
+        map(() => ({ body: 'Jam!' })),
     )),
 )
 
@@ -32,6 +39,7 @@ const server = createServer({
 })
 
 const main: IO<void> = async () => {
+    await dataSource.initialize()
     await (await server)()
 }
 
