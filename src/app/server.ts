@@ -1,23 +1,20 @@
 import 'module-alias/register'
 
 import { IO } from 'fp-ts/lib/IO'
-import { createServer, httpListener, r } from '@marblejs/http'
-import { map } from 'rxjs/operators'
+import { createServer, httpListener } from '@marblejs/http'
 import { logger$ } from '@marblejs/middleware-logger'
 import { bodyParser$ } from '@marblejs/middleware-body'
 
-import { createDataSource } from '@/app/data'
-import { config } from '@/app/config'
+import { createConfig } from '@/app/config'
+import { createDataSource } from '@/app/data/data-source'
+import { createRedisClient } from '@/app/data/redis'
+import { root$ } from '@/app/routes'
+
+const config = createConfig()
 
 const dataSource = createDataSource(config)
 
-const api$ = r.pipe(
-    r.matchPath('/'),
-    r.matchType('GET'),
-    r.useEffect(req$ => req$.pipe(
-        map(() => ({ body: 'Jam!' })),
-    )),
-)
+const redisClient = createRedisClient(config)
 
 const middlewares = [
     logger$(),
@@ -25,7 +22,7 @@ const middlewares = [
 ]
 
 const effects = [
-    api$,
+    root$,
 ]
 
 export const listener = httpListener({
@@ -34,11 +31,12 @@ export const listener = httpListener({
 })
 
 const server = createServer({
-    port: 2222,
+    port: config.port,
     listener,
 })
 
 const main: IO<void> = async () => {
+    await redisClient.connect()
     await dataSource.initialize()
     await (await server)()
 }
