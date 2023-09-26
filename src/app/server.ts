@@ -26,7 +26,10 @@ fastify.post('/api/v1/code', createCodeRoute(config)(redisClient));
     try {
         await redisClient.connect()
         await dataSource.initialize()
-        await fastify.listen({ port: config.port })
+        await fastify.listen({
+            port: config.port,
+            host: '0.0.0.0',
+        })
     } catch (err) {
         fastify.log.error(err)
         process.exit(1)
