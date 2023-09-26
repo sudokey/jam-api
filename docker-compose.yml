@@ -10,7 +10,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "{{env.POSTGRES_PORT}}:5432"
+      - "{{ env.POSTGRES_PORT }}:5432"
 
   redis:
     image: redis:7.2-alpine
@@ -25,7 +25,8 @@ services:
     restart: always
     image: {{ env.API_IMAGE }}
     environment:
-      - PORT=2222
+      - PORT={{ env.PORT }}
+      - HOST={{ env.HOST }}
       - POSTGRES_USER={{ env.POSTGRES_USER }}
       - POSTGRES_PASSWORD={{ env.POSTGRES_PASSWORD }}
       - POSTGRES_DB={{ env.POSTGRES_DB }}
@@ -37,7 +38,7 @@ services:
     build:
       context: ./
     ports:
-      - "80:2222"
+      - "80:{{ env.PORT }}"
     depends_on:
       - postgres
       - redis
