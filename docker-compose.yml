@@ -1,5 +1,26 @@
 version: "3.8"
 services:
+  postgres:
+    image: postgres:14.8-alpine3.18
+    environment:
+      POSTGRES_USER: {{ env.POSTGRES_USER }}
+      POSTGRES_PASSWORD: {{ env.POSTGRES_PASSWORD }}
+      POSTGRES_DB: {{ env.POSTGRES_DB }}
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "{{env.POSTGRES_PORT}}:5432"
+
+  redis:
+    image: redis:7.2-alpine
+    restart: always
+    command: redis-server --save 60 1 --requirepass {{ env.REDIS_PASSWORD }}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "{{env.REDIS_PORT}}:6379"
+
   nodeserver:
     restart: always
     image: {{ env.API_IMAGE }}
@@ -9,3 +30,7 @@ services:
       context: ./
     ports:
       - "80:2222"
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -26,17 +26,15 @@
         "typescript": "^5.2.2"
     },
     "dependencies": {
-        "@marblejs/core": "^4.1.0",
-        "@marblejs/http": "^4.1.0",
-        "@marblejs/middleware-body": "^4.1.0",
-        "@marblejs/middleware-logger": "^4.1.0",
+        "@fastify/funky": "^3.0.0",
         "dotenv-flow": "^3.3.0",
+        "fastify": "^4.23.2",
         "fp-ts": "^2.16.1",
+        "io-ts": "^2.2.20",
         "module-alias": "^2.2.3",
         "pg": "^8.11.3",
         "pm2": "^5.3.0",
         "redis": "^4.6.9",
-        "rxjs": "^7.8.1",
         "typeorm": "^0.3.17"
     }
 }

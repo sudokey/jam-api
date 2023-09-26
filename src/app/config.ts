@@ -1,7 +1,8 @@
 import 'dotenv-flow/config'
 
-export type ServerConfig = {
+export type AppConfig = {
     port: number,
+    sendCodeTimeout: number,
 }
 
 export type PostgresConfig = {
@@ -18,7 +19,7 @@ export type RedisConfig = {
     redisPort: number,
 }
 
-type Config = ServerConfig & PostgresConfig & RedisConfig
+type Config = AppConfig & PostgresConfig & RedisConfig
 
 export const createConfig = (): Config => {
     if (!process.env.POSTGRES_USER) {
@@ -45,6 +46,10 @@ export const createConfig = (): Config => {
         throw new Error('PORT must be defined')
     }
 
+    if (!process.env.SEND_CODE_TIMEOUT) {
+        throw new Error('SEND_CODE_TIMEOUT must be defined')
+    }
+
     if (!process.env.REDIS_PASSWORD) {
         throw new Error('REDIS_PASSWORD must be defined')
     }
@@ -67,5 +72,6 @@ export const createConfig = (): Config => {
         redisPassword: process.env.REDIS_PASSWORD,
         redisHost: process.env.REDIS_HOST,
         redisPort: parseInt(process.env.REDIS_PORT, 10),
+        sendCodeTimeout: parseInt(process.env.SEND_CODE_TIMEOUT, 10),
     }
 }

@@ -1,14 +1,12 @@
 import 'module-alias/register'
-
-import { IO } from 'fp-ts/lib/IO'
-import { createServer, httpListener } from '@marblejs/http'
-import { logger$ } from '@marblejs/middleware-logger'
-import { bodyParser$ } from '@marblejs/middleware-body'
+import Fastify from 'fastify'
 
 import { createConfig } from '@/app/config'
 import { createDataSource } from '@/app/data/data-source'
 import { createRedisClient } from '@/app/data/redis'
-import { root$ } from '@/app/routes'
+import { createCodeRoute } from '@/app/routes/code'
+
+const { fastifyFunky } = require('@fastify/funky')
 
 const config = createConfig()
 
@@ -16,29 +14,21 @@ const dataSource = createDataSource(config)
 
 const redisClient = createRedisClient(config)
 
-const middlewares = [
-    logger$(),
-    bodyParser$(),
-]
-
-const effects = [
-    root$,
-]
-
-export const listener = httpListener({
-    middlewares,
-    effects,
+const fastify = Fastify({
+    logger: true,
 })
 
-const server = createServer({
-    port: config.port,
-    listener,
-})
+fastify.register(fastifyFunky)
 
-const main: IO<void> = async () => {
-    await redisClient.connect()
-    await dataSource.initialize()
-    await (await server)()
-}
+fastify.post('/api/v1/code', createCodeRoute(config)(redisClient));
 
-main()
+(async () => {
+    try {
+        await redisClient.connect()
+        await dataSource.initialize()
+        await fastify.listen({ port: config.port })
+    } catch (err) {
+        fastify.log.error(err)
+        process.exit(1)
+    }
+})()
