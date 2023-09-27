@@ -6,14 +6,7 @@ on:
 
 env:
   API_IMAGE: ${{ secrets.DOCKER_HUB_USERNAME }}/jam-api:${{ github.sha }}
-  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-  POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-  POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
-  POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
-  REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-  REDIS_HOST: ${{ secrets.REDIS_HOST }}
-  REDIS_PORT: ${{ secrets.REDIS_PORT }}
+  NGINX_IMAGE: ${{ secrets.DOCKER_HUB_USERNAME }}/jam-nginx:${{ github.sha }}
 
 jobs:
   build-api:
@@ -35,14 +28,38 @@ jobs:
       - name: Build Api
         uses: docker/build-push-action@v3
         with:
-          context: ./
-          file: ./Dockerfile
+          context: ./app
+          file: ./app/Dockerfile
           push: true
           tags: ${{ env.API_IMAGE }}
 
+  build-nginx:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Login to Dockerhub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Api
+        uses: docker/build-push-action@v3
+        with:
+          context: ./nginx
+          file: ./nginx/Dockerfile
+          push: true
+          tags: ${{ env.NGINX_IMAGE }}
+
   update-yc:
     runs-on: ubuntu-latest
-    needs: [build-api]
+    needs: [build-api, build-nginx]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -52,8 +69,17 @@ jobs:
         uses: yc-actions/yc-coi-deploy@v2
         env:
           API_IMAGE: ${{ env.API_IMAGE }}
+          NGINX_IMAGE: ${{ env.NGINX_IMAGE }}
           YC_VM_SSH: ${{ secrets.YC_VM_SSH }}
           YC_VM_USERNAME: ${{ secrets.YC_VM_USERNAME }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
         with:
           yc-sa-json-credentials: ${{ secrets.YC_SA_JSON_CREDENTIALS }}
           folder-id: ${{ secrets.YC_FOLDER_ID }}
