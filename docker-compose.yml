@@ -25,8 +25,8 @@ services:
     restart: always
     image: {{ env.API_IMAGE }}
     environment:
-      - PORT={{ env.PORT }}
-      - HOST={{ env.HOST }}
+      - PORT=2222
+      - HOST=0.0.0.0
       - POSTGRES_USER={{ env.POSTGRES_USER }}
       - POSTGRES_PASSWORD={{ env.POSTGRES_PASSWORD }}
       - POSTGRES_DB={{ env.POSTGRES_DB }}
@@ -38,11 +38,45 @@ services:
     build:
       context: ./
     ports:
-      - "80:{{ env.PORT }}"
+      - "2222:2222"
     depends_on:
       - postgres
       - redis
+    volumes:
+      - nginx:/app/nginx
+      - dhparam:/app/dhparam
+      - web_root:/app/web-root
+
+  nginx:
+    image: nginx:latest
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - nginx:/etc/nginx/conf.d
+      - dhparam:/etc/ssl/private
+      - web_root:/var/www/html
+      - certbot_etc:/etc/letsencrypt
+      - certbot_var:/var/lib/letsencrypt
+    depends_on:
+      - nodeserver
+
+  # certbot:
+  #   image: certbot/certbot:latest
+  #   volumes:
+  #     - certbot_etc:/etc/letsencrypt
+  #     - certbot_var:/var/lib/letsencrypt
+  #     - web_root:/var/www/html
+  #   depends_on:
+  #     - nginx
+  #   command: certonly --webroot --webroot-path=/var/www/html --email hello@wigwam.fun --agree-tos --no-eff-email --staging -d wigwam.fun
 
 volumes:
   postgres_data:
   redis_data:
+  certbot_etc:
+  certbot_var:
+  nginx:
+  dhparam:
+  web_root:
