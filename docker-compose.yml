@@ -31,6 +31,8 @@ services:
       REDIS_PASSWORD: {{ env.REDIS_PASSWORD }}
       REDIS_HOST: {{ env.REDIS_HOST }}
       REDIS_PORT: {{ env.REDIS_PORT }}
+      SMTP_USER: {{ env.SMTP_USER }}
+      SMTP_PASSWORD: {{ env.SMTP_PASSWORD }}
     depends_on:
       - postgres
       - redis
