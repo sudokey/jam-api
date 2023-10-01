@@ -9,8 +9,6 @@ services:
       PGDATA: "/var/lib/postgresql/data/pgdata"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "{{ env.POSTGRES_PORT }}:5432"
 
   redis:
     image: redis:7.2-alpine
@@ -18,8 +16,6 @@ services:
     command: redis-server --save 60 1 --requirepass {{ env.REDIS_PASSWORD }}
     volumes:
       - redis_data:/data
-    ports:
-      - "{{ env.REDIS_PORT }}:6379"
 
   nodeserver:
     restart: always
@@ -35,8 +31,6 @@ services:
       REDIS_PASSWORD: {{ env.REDIS_PASSWORD }}
       REDIS_HOST: {{ env.REDIS_HOST }}
       REDIS_PORT: {{ env.REDIS_PORT }}
-    ports:
-      - "2222:2222"
     depends_on:
       - postgres
       - redis
