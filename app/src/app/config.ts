@@ -2,6 +2,7 @@ import 'dotenv-flow/config'
 
 export type AppConfig = {
     port: number,
+    host: string,
     sendCodeTimeout: number,
 }
 
@@ -19,7 +20,12 @@ export type RedisConfig = {
     redisPort: number,
 }
 
-type Config = AppConfig & PostgresConfig & RedisConfig
+export type SmtpConfig = {
+    smtpUser: string,
+    smtpPassword: string,
+}
+
+type Config = AppConfig & PostgresConfig & RedisConfig & SmtpConfig
 
 export const createConfig = (): Config => {
     if (!process.env.POSTGRES_USER) {
@@ -46,6 +52,10 @@ export const createConfig = (): Config => {
         throw new Error('PORT must be defined')
     }
 
+    if (!process.env.HOST) {
+        throw new Error('HOST must be defined')
+    }
+
     if (!process.env.SEND_CODE_TIMEOUT) {
         throw new Error('SEND_CODE_TIMEOUT must be defined')
     }
@@ -62,8 +72,17 @@ export const createConfig = (): Config => {
         throw new Error('REDIS_PORT must be defined')
     }
 
+    if (!process.env.SMTP_USER) {
+        throw new Error('SMTP_USER must be defined')
+    }
+
+    if (!process.env.SMTP_PASSWORD) {
+        throw new Error('SMTP_PASSWORD must be defined')
+    }
+
     return {
         port: parseInt(process.env.PORT, 10),
+        host: process.env.HOST,
         postgresUser: process.env.POSTGRES_USER,
         postgresPassword: process.env.POSTGRES_PASSWORD,
         postgresPort: parseInt(process.env.POSTGRES_PORT, 10),
@@ -73,5 +92,7 @@ export const createConfig = (): Config => {
         redisHost: process.env.REDIS_HOST,
         redisPort: parseInt(process.env.REDIS_PORT, 10),
         sendCodeTimeout: parseInt(process.env.SEND_CODE_TIMEOUT, 10),
+        smtpUser: process.env.SMTP_USER,
+        smtpPassword: process.env.SMTP_PASSWORD,
     }
 }

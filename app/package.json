@@ -16,6 +16,7 @@
     },
     "devDependencies": {
         "@types/node": "^20.6.2",
+        "@types/nodemailer": "^6.4.11",
         "eslint": "^8.49.0",
         "eslint-config-airbnb-base": "^15.0.0",
         "eslint-config-airbnb-typescript": "^17.1.0",
@@ -28,10 +29,12 @@
     "dependencies": {
         "@fastify/funky": "^3.0.0",
         "dotenv-flow": "^3.3.0",
+        "emailjs": "^4.0.3",
         "fastify": "^4.23.2",
         "fp-ts": "^2.16.1",
         "io-ts": "^2.2.20",
         "module-alias": "^2.2.3",
+        "nodemailer": "^6.9.5",
         "pg": "^8.11.3",
         "pm2": "^5.3.0",
         "redis": "^4.6.9",

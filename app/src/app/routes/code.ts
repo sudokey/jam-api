@@ -8,9 +8,8 @@ import { RedisClient } from '@/app/data/redis'
 import { ErrorMessage } from '@/app/messages'
 import { isEmail } from '@/app/utils/is-email'
 import { AppConfig } from '@/app/config'
-import {
-    UserCode, makeUserCode, getUserCode, saveUserCode,
-} from '@/app/misc/user-code'
+import { makeUserCode, getUserCode, saveUserCode } from '@/app/misc/user-code'
+import { SmtpTransporter, sendCode } from '@/app/misc/mailer'
 
 const createCodeRequestSchema = t.type({
     body: t.type({
@@ -27,9 +26,15 @@ const decodeCreateCodeRequest: DecodeCreateCodeRequest = flow(
     E.filterOrElse(isEmail, () => new Error(ErrorMessage.WRONG_EMAIL)),
 )
 
-type CreateCodeRoute = (c: AppConfig) => (r: RedisClient) => (req: unknown) => TE.TaskEither<Error, UserCode>
+type CreateCodeResponse = {
+    success: true
+}
 
-export const createCodeRoute: CreateCodeRoute = config => redis => req => pipe(
+type CreateCodeRoute = (t: SmtpTransporter, c: AppConfig, r: RedisClient) => (req: unknown) => (
+    TE.TaskEither<Error, CreateCodeResponse>
+)
+
+export const createCodeRoute: CreateCodeRoute = (transporter, config, redis) => req => pipe(
     TE.fromEither(decodeCreateCodeRequest(req)),
     TE.flatMap(email => pipe(
         getUserCode(redis)(email),
@@ -39,5 +44,8 @@ export const createCodeRoute: CreateCodeRoute = config => redis => req => pipe(
         ),
         TE.map(makeUserCode),
         TE.flatMap(saveUserCode(redis)(email)),
+        TE.map(code => code.value.toUpperCase()),
+        TE.flatMap(code => sendCode(transporter)(email, code)),
+        TE.map(() => ({ success: true })),
     )),
 )
