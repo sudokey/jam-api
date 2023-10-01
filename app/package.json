@@ -15,6 +15,7 @@
         "@": "dist"
     },
     "devDependencies": {
+        "@types/jsonwebtoken": "^9.0.3",
         "@types/node": "^20.6.2",
         "@types/nodemailer": "^6.4.11",
         "eslint": "^8.49.0",
@@ -33,6 +34,7 @@
         "fastify": "^4.23.2",
         "fp-ts": "^2.16.1",
         "io-ts": "^2.2.20",
+        "jsonwebtoken": "^9.0.2",
         "module-alias": "^2.2.3",
         "nodemailer": "^6.9.5",
         "pg": "^8.11.3",

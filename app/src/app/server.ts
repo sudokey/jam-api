@@ -4,8 +4,9 @@ import Fastify from 'fastify'
 import { createConfig } from '@/app/config'
 import { createDataSource } from '@/app/data/data-source'
 import { createRedisClient } from '@/app/data/redis'
-import { createCodeRoute } from '@/app/routes/code'
+import { createCode } from '@/app/routes/code'
 import { createSmtpTransporter } from '@/app/misc/mailer'
+import { createToken } from '@/app/routes/token'
 
 const { fastifyFunky } = require('@fastify/funky')
 
@@ -23,7 +24,8 @@ const fastify = Fastify({
 
 fastify.register(fastifyFunky)
 
-fastify.post('/api/v1/code', createCodeRoute(smtpTransporter, config, redisClient));
+fastify.post('/api/v1/code', createCode(smtpTransporter, config, redisClient))
+fastify.post('/api/v1/token', createToken(config, dataSource, redisClient));
 
 (async () => {
     try {

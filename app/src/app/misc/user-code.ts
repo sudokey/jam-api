@@ -18,7 +18,7 @@ export const makeUserCode = (): UserCode => ({
     createdAt: Date.now(),
 })
 
-export const serializeUserCode = (code: UserCode): string => `${code.value}.${code.createdAt}`
+export const serializeUserCode = (code: UserCode): string => `${code.value}.${code.createdAt}`.toLowerCase()
 
 type ParseUserCode = (str: string) => E.Either<Error, UserCode>
 
@@ -34,7 +34,7 @@ export const parseUserCode: ParseUserCode = str => pipe(
 
 export const getUserCodeKey = (email: string): string => `code.${email}`.toLowerCase()
 
-type GetUserCode = (redis: RedisClient) => (email: string) => TE.TaskEither<Error, UserCode | null>
+type GetUserCode = (r: RedisClient) => (email: string) => TE.TaskEither<Error, UserCode | null>
 
 export const getUserCode: GetUserCode = redis => email => pipe(
     TE.tryCatch(() => redis.get(getUserCodeKey(email)), E.toError),
@@ -47,4 +47,12 @@ type SaveUserCode = (r: RedisClient) => (email: string) => (code: UserCode) => T
 export const saveUserCode: SaveUserCode = redis => email => code => pipe(
     TE.tryCatch(() => redis.set(getUserCodeKey(email), serializeUserCode(code)), E.toError),
     TE.map(() => code),
+)
+
+type RemoveCode = (r: RedisClient) => (email: string) => TE.TaskEither<Error, string>
+
+export const removeUserCode: RemoveCode = redis => email => pipe(
+    TE.of(getUserCodeKey(email)),
+    TE.flatMap(key => pipe(TE.tryCatch(() => redis.del(key), E.toError))),
+    TE.map(() => email),
 )

@@ -21,9 +21,9 @@ export const createSmtpTransporter = (config: SmtpConfig): SmtpTransporter => (
     })
 )
 
-type SendCode = (t: SmtpTransporter) => (email: string, code: string) => TE.TaskEither<Error, void>
+type SendCode = (t: SmtpTransporter) => (email: string) => (code: string) => TE.TaskEither<Error, void>
 
-export const sendCode: SendCode = (transporter) => (email, code) => pipe(
+export const sendCode: SendCode = transporter => email => code => pipe(
     TE.tryCatch(() => transporter.sendMail({
         from: 'sudokey@yandex.ru',
         to: email,

@@ -30,11 +30,11 @@ type CreateCodeResponse = {
     success: true
 }
 
-type CreateCodeRoute = (t: SmtpTransporter, c: AppConfig, r: RedisClient) => (req: unknown) => (
+type CreateCode = (t: SmtpTransporter, c: AppConfig, r: RedisClient) => (req: unknown) => (
     TE.TaskEither<Error, CreateCodeResponse>
 )
 
-export const createCodeRoute: CreateCodeRoute = (transporter, config, redis) => req => pipe(
+export const createCode: CreateCode = (transporter, config, redis) => req => pipe(
     TE.fromEither(decodeCreateCodeRequest(req)),
     TE.flatMap(email => pipe(
         getUserCode(redis)(email),
@@ -45,7 +45,7 @@ export const createCodeRoute: CreateCodeRoute = (transporter, config, redis) => 
         TE.map(makeUserCode),
         TE.flatMap(saveUserCode(redis)(email)),
         TE.map(code => code.value.toUpperCase()),
-        TE.flatMap(code => sendCode(transporter)(email, code)),
+        TE.flatMap(sendCode(transporter)(email)),
         TE.map(() => ({ success: true })),
     )),
 )

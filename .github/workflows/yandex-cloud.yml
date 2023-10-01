@@ -82,6 +82,7 @@ jobs:
           REDIS_PORT: ${{ secrets.REDIS_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         with:
           yc-sa-json-credentials: ${{ secrets.YC_SA_JSON_CREDENTIALS }}
           folder-id: ${{ secrets.YC_FOLDER_ID }}

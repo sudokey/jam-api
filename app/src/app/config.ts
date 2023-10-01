@@ -4,6 +4,7 @@ export type AppConfig = {
     port: number,
     host: string,
     sendCodeTimeout: number,
+    jwtSecret: string,
 }
 
 export type PostgresConfig = {
@@ -80,9 +81,14 @@ export const createConfig = (): Config => {
         throw new Error('SMTP_PASSWORD must be defined')
     }
 
+    if (!process.env.JWT_SECRET) {
+        throw new Error('JWT_SECRET must be defined')
+    }
+
     return {
-        port: parseInt(process.env.PORT, 10),
         host: process.env.HOST,
+        port: parseInt(process.env.PORT, 10),
+        jwtSecret: process.env.JWT_SECRET,
         postgresUser: process.env.POSTGRES_USER,
         postgresPassword: process.env.POSTGRES_PASSWORD,
         postgresPort: parseInt(process.env.POSTGRES_PORT, 10),
