@@ -4,4 +4,5 @@ export enum ErrorMessage {
     CODE_TIMEOUT = 'CODE_TIMEOUT',
     WRONG_CODE = 'WRONG_CODE',
     EMAIL_TAKEN = 'WRONG_CODE',
+    WRONG_TOKEN = 'WRONG_TOKEN',
 }

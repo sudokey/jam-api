@@ -10,25 +10,25 @@ import { ErrorMessage } from '@/app/messages'
 import { createUser, getUser } from '@/app/misc/user'
 import { isEmail } from '@/app/utils/is-email'
 import { AppConfig } from '@/app/config'
-import { createJwtToken, saveTokenSession } from '@/app/misc/token'
+import { createJwtToken, saveSession } from '@/app/misc/token'
 
 type CreateTokenResponse = {
     token: string,
 }
 
-type CreateToken = (c: AppConfig, d: DataSource, r: RedisClient) => (req: unknown) => (
+type CreateToken = (c: AppConfig) => (d: DataSource) => (r: RedisClient) => (req: unknown) => (
     TE.TaskEither<Error, CreateTokenResponse>
 )
 
-const createTokenRequestSchema = t.type({
+const createTokenSchema = t.type({
     body: t.type({
         email: t.string,
         code: t.string,
     }),
 })
 
-export const createToken: CreateToken = (config, data, redis) => req => pipe(
-    createTokenRequestSchema.decode(req),
+export const createToken: CreateToken = config => data => redis => req => pipe(
+    createTokenSchema.decode(req),
     E.mapLeft(() => new Error(ErrorMessage.WRONG_DATA)),
     E.filterOrElse(
         ({ body }) => isEmail(body.email),
@@ -39,19 +39,17 @@ export const createToken: CreateToken = (config, data, redis) => req => pipe(
         code: body.code.toLowerCase(),
         email: body.email.toLowerCase(),
     })),
-    TE.flatMap(body => pipe(
-        getUserCode(redis)(body.email),
-        TE.filterOrElse(
-            code => !!code && code.value === body.code,
-            () => new Error(ErrorMessage.WRONG_CODE),
-        ),
-        TE.flatMap(() => removeUserCode(redis)(body.email)),
-        TE.flatMap(() => getUser(data)(body.email)),
-        TE.flatMap(user => (user ? TE.right(user) : createUser(data)(body.email))),
-    )),
-    TE.flatMap(user => pipe(
-        saveTokenSession(redis)(user.id),
-        TE.map(() => createJwtToken(config.jwtSecret)(user)),
-    )),
+    TE.bindTo('body'),
+    TE.bind('code', d => getUserCode(redis)(d.body.email)),
+    TE.filterOrElse(
+        d => !!d.code && d.code.value === d.body.code,
+        () => new Error(ErrorMessage.WRONG_CODE),
+    ),
+    TE.tap(d => removeUserCode(redis)(d.body.email)),
+    TE.bind('user', d => getUser(data)(d.body.email)),
+    TE.flatMap(d => (d.user ? TE.right(d.user) : createUser(data)(d.body.email))),
+    TE.bindTo('user'),
+    TE.bind('date', d => saveSession(redis)(d.user)),
+    TE.map(d => createJwtToken(config.jwtSecret)(d.user)(d.date)),
     TE.map(token => ({ token })),
 )

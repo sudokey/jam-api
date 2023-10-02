@@ -2,9 +2,13 @@
 import * as TE from 'fp-ts/TaskEither'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
+import { toLowerCase } from 'fp-ts/lib/string'
 
 import { RedisClient } from '@/app/data/redis'
 import { makeId } from '@/app/utils/make-id'
+import { isEmail } from '@/app/utils/is-email'
+import { ErrorMessage } from '@/app/messages'
+import { maxLength } from '@/app/utils/fp'
 
 export type UserCode = {
     value: string,
@@ -32,12 +36,21 @@ export const parseUserCode: ParseUserCode = str => pipe(
     E.map(([value, createdAt]) => ({ value, createdAt })),
 )
 
-export const getUserCodeKey = (email: string): string => `code.${email}`.toLowerCase()
+type GetUserCodeKey = (email: string) => E.Either<Error, string>
+
+export const getUserCodeKey: GetUserCodeKey = email => pipe(
+    E.of(email),
+    E.map(toLowerCase),
+    E.filterOrElse(isEmail, () => new Error(ErrorMessage.WRONG_EMAIL)),
+    E.filterOrElse(maxLength(70), () => new Error(ErrorMessage.WRONG_EMAIL)),
+    E.map(e => `code.${e}`),
+)
 
 type GetUserCode = (r: RedisClient) => (email: string) => TE.TaskEither<Error, UserCode | null>
 
 export const getUserCode: GetUserCode = redis => email => pipe(
-    TE.tryCatch(() => redis.get(getUserCodeKey(email)), E.toError),
+    TE.fromEither(getUserCodeKey(email)),
+    TE.flatMap(key => TE.tryCatch(() => redis.get(key), E.toError)),
     TE.map(code => (code ? parseUserCode(code) : E.right(null))),
     TE.flatMap(TE.fromEither),
 )
@@ -45,14 +58,15 @@ export const getUserCode: GetUserCode = redis => email => pipe(
 type SaveUserCode = (r: RedisClient) => (email: string) => (code: UserCode) => TE.TaskEither<Error, UserCode>
 
 export const saveUserCode: SaveUserCode = redis => email => code => pipe(
-    TE.tryCatch(() => redis.set(getUserCodeKey(email), serializeUserCode(code)), E.toError),
+    TE.fromEither(getUserCodeKey(email)),
+    TE.flatMap(key => TE.tryCatch(() => redis.set(key, serializeUserCode(code)), E.toError)),
     TE.map(() => code),
 )
 
 type RemoveCode = (r: RedisClient) => (email: string) => TE.TaskEither<Error, string>
 
 export const removeUserCode: RemoveCode = redis => email => pipe(
-    TE.of(getUserCodeKey(email)),
+    TE.fromEither(getUserCodeKey(email)),
     TE.flatMap(key => pipe(TE.tryCatch(() => redis.del(key), E.toError))),
     TE.map(() => email),
 )
