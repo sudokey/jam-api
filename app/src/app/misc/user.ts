@@ -1,10 +1,11 @@
 import * as TE from 'fp-ts/TaskEither'
 import * as E from 'fp-ts/Either'
-import { DataSource } from 'typeorm'
+import { DataSource, UpdateResult } from 'typeorm'
 import { pipe } from 'fp-ts/lib/function'
 
 import { User } from '@/app/entities/User'
 import { makeId } from '@/app/utils/make-id'
+import { ErrorMessage } from '@/app/messages'
 
 type GetUser = (d: DataSource) => (email: string) => TE.TaskEither<Error, User | null>
 
@@ -40,5 +41,32 @@ export const createUser: CreateUser = data => email => pipe(
         user.nickname = nickname.toLowerCase()
         return user
     }),
-    TE.flatMap(saveUser(data)),
+    TE.chain(saveUser(data)),
+)
+
+type UserData = {
+    firstName: string,
+    lastName: string,
+    location: string,
+    about: string,
+    nickname: string,
+}
+
+type UpdateUser = (d: DataSource) => (id: number) => (userData: UserData) => (
+    TE.TaskEither<Error, UpdateResult>
+)
+
+export const updateUser: UpdateUser = data => id => userData => pipe(
+    TE.of(userData),
+    TE.filterOrElse(
+        d => (
+            d.firstName.length <= 24
+            && d.lastName.length <= 24
+            && d.nickname.length <= 24
+            && d.location.length <= 36
+            && d.about.length <= 255
+        ),
+        () => new Error(ErrorMessage.WRONG_DATA),
+    ),
+    TE.chain(() => TE.tryCatch(() => data.manager.update(User, { id }, userData), E.toError)),
 )

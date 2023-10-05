@@ -50,16 +50,16 @@ type GetUserCode = (r: RedisClient) => (email: string) => TE.TaskEither<Error, U
 
 export const getUserCode: GetUserCode = redis => email => pipe(
     TE.fromEither(getUserCodeKey(email)),
-    TE.flatMap(key => TE.tryCatch(() => redis.get(key), E.toError)),
+    TE.chain(key => TE.tryCatch(() => redis.get(key), E.toError)),
     TE.map(code => (code ? parseUserCode(code) : E.right(null))),
-    TE.flatMap(TE.fromEither),
+    TE.chain(TE.fromEither),
 )
 
 type SaveUserCode = (r: RedisClient) => (email: string) => (code: UserCode) => TE.TaskEither<Error, UserCode>
 
 export const saveUserCode: SaveUserCode = redis => email => code => pipe(
     TE.fromEither(getUserCodeKey(email)),
-    TE.flatMap(key => TE.tryCatch(() => redis.set(key, serializeUserCode(code)), E.toError)),
+    TE.chain(key => TE.tryCatch(() => redis.set(key, serializeUserCode(code)), E.toError)),
     TE.map(() => code),
 )
 
@@ -67,6 +67,6 @@ type RemoveCode = (r: RedisClient) => (email: string) => TE.TaskEither<Error, st
 
 export const removeUserCode: RemoveCode = redis => email => pipe(
     TE.fromEither(getUserCodeKey(email)),
-    TE.flatMap(key => pipe(TE.tryCatch(() => redis.del(key), E.toError))),
+    TE.chain(key => pipe(TE.tryCatch(() => redis.del(key), E.toError))),
     TE.map(() => email),
 )

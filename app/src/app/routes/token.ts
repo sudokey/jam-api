@@ -47,9 +47,9 @@ export const createToken: CreateToken = config => data => redis => req => pipe(
     ),
     TE.tap(d => removeUserCode(redis)(d.body.email)),
     TE.bind('user', d => getUser(data)(d.body.email)),
-    TE.flatMap(d => (d.user ? TE.right(d.user) : createUser(data)(d.body.email))),
+    TE.chain(d => (d.user ? TE.right(d.user) : createUser(data)(d.body.email))),
     TE.bindTo('user'),
-    TE.bind('date', d => saveSession(redis)(d.user)),
-    TE.map(d => createJwtToken(config.jwtSecret)(d.user)(d.date)),
+    TE.bind('session', d => saveSession(redis)(d.user)),
+    TE.map(d => createJwtToken(config.jwtSecret)(d.user)(d.session)),
     TE.map(token => ({ token })),
 )

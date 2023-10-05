@@ -7,7 +7,7 @@ import { createRedisClient } from '@/app/data/redis'
 import { createCode } from '@/app/routes/code'
 import { createSmtpTransporter } from '@/app/misc/mailer'
 import { createToken } from '@/app/routes/token'
-import { getUser } from '@/app/routes/uset'
+import { getUserRoute, updateUserRoute } from '@/app/routes/uset'
 
 const { fastifyFunky } = require('@fastify/funky')
 
@@ -27,7 +27,8 @@ fastify.register(fastifyFunky)
 
 fastify.post('/api/v1/code', createCode(smtpTransporter)(config)(redisClient))
 fastify.post('/api/v1/token', createToken(config)(dataSource)(redisClient))
-fastify.post('/api/v1/user', getUser(redisClient)(dataSource)(config));
+fastify.get('/api/v1/user', getUserRoute(redisClient)(dataSource)(config))
+fastify.post('/api/v1/user', updateUserRoute(redisClient)(dataSource)(config));
 
 (async () => {
     try {

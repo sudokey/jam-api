@@ -6,35 +6,33 @@ import { pipe } from 'fp-ts/lib/function'
 import { User } from '@/app/entities/User'
 import { RedisClient } from '@/app/data/redis'
 import { ErrorMessage } from '@/app/messages'
+import { makeId } from '@/app/utils/make-id'
 
-type CreateToken = (secret: string) => (u: User) => (date: number) => string
+type CreateToken = (secret: string) => (u: User) => (session: string) => string
 
-export const createJwtToken: CreateToken = secret => user => date => (
-    jwt.sign({ date, id: user.id }, secret)
+export const createJwtToken: CreateToken = secret => user => session => (
+    jwt.sign({ session, id: user.id }, secret)
 )
 
 const createSessionKey = (userId: number) => `session.${userId}`
 
-type GetSession = (r: RedisClient) => (userId: number) => TE.TaskEither<Error, number | null>
+type GetSession = (r: RedisClient) => (userId: number) => TE.TaskEither<Error, string | null>
 
 export const getSession: GetSession = redis => userId => pipe(
     TE.of(createSessionKey(userId)),
-    TE.flatMap(key => TE.tryCatch(() => redis.get(key), E.toError)),
-    TE.map(a => (a ? parseInt(a, 10) : null)),
+    TE.chain(key => TE.tryCatch(() => redis.get(key), E.toError)),
 )
 
-type CreateSession = (r: RedisClient) => (user: User) => TE.TaskEither<Error, number>
+type CreateSession = (r: RedisClient) => (user: User) => TE.TaskEither<Error, string>
 
 export const saveSession: CreateSession = redis => user => pipe(
-    TE.of(Date.now()),
-    TE.bindTo('date'),
-    TE.tap(d => TE.tryCatch(() => redis.set(createSessionKey(user.id), d.date), E.toError)),
-    TE.map(d => d.date),
+    TE.of(makeId(8)),
+    TE.tap(session => TE.tryCatch(() => redis.set(createSessionKey(user.id), session), E.toError)),
 )
 
 type TokenData = {
     id: number,
-    date: number,
+    session: string,
 }
 
 type VerifyToken = (r: RedisClient) => (secret: string) => (token: string) => (
@@ -51,7 +49,7 @@ export const verifyToken: VerifyToken = redis => secret => token => pipe(
     TE.bindTo('token'),
     TE.bind('session', d => getSession(redis)(d.token.id)),
     TE.filterOrElse(
-        a => !!a.session && a.token.date >= a.session,
+        d => !!d.session && d.token.session === d.session,
         () => new Error(ErrorMessage.WRONG_TOKEN),
     ),
     TE.map(d => d.token),

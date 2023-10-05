@@ -16,4 +16,28 @@ export class User {
         unique: true,
     })
         nickname: string
+
+    @Column({
+        type: 'text',
+        nullable: true,
+    })
+        firstName?: string
+
+    @Column({
+        type: 'text',
+        nullable: true,
+    })
+        lastName?: string
+
+    @Column({
+        type: 'text',
+        nullable: true,
+    })
+        location?: string
+
+    @Column({
+        type: 'text',
+        nullable: true,
+    })
+        about?: string
 }

@@ -5,4 +5,5 @@ export enum ErrorMessage {
     WRONG_CODE = 'WRONG_CODE',
     EMAIL_TAKEN = 'WRONG_CODE',
     WRONG_TOKEN = 'WRONG_TOKEN',
+    NOT_FOUNDED = 'NOT_FOUNDED',
 }
