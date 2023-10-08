@@ -52,3 +52,15 @@ type GetTimer = (d: DataSource) => (userId: number) => TE.TaskEither<Error, Time
 export const getTimers: GetTimer = data => userId => pipe(
     TE.tryCatch(() => data.manager.findBy(Timer, { user: { id: userId } }), E.toError),
 )
+
+type GetOnline = (d: DataSource) => TE.TaskEither<Error, number>
+
+export const getOnline: GetOnline = data => pipe(
+    TE.tryCatch(
+        () => data.getRepository(Timer)
+            .createQueryBuilder('timer')
+            .where("CURRENT_TIMESTAMP - timer.createdAt < timer.minutes * '1 m'::interval")
+            .getCount(),
+        E.toError,
+    ),
+)

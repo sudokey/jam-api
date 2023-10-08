@@ -51,6 +51,7 @@
                 "": "never"
             }
         ],
-        "unused-imports/no-unused-imports-ts": "error"
+        "unused-imports/no-unused-imports-ts": "error",
+        "no-confusing-arrow": "off"
     }
 }
