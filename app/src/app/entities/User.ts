@@ -1,4 +1,8 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import {
+    Column, Entity, OneToMany, PrimaryGeneratedColumn,
+} from 'typeorm'
+
+import { Timer } from '@/app/entities/Timer'
 
 @Entity()
 export class User {
@@ -40,4 +44,7 @@ export class User {
         nullable: true,
     })
         about?: string
+
+    @OneToMany(() => Timer, timer => timer.user)
+        timers?: Timer[]
 }

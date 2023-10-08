@@ -30,8 +30,8 @@ export const getUserRoute: GetUser = redis => data => config => req => pipe(
     E.mapLeft(() => new Error(ErrorMessage.WRONG_DATA)),
     TE.fromEither,
     TE.map(r => r.headers.token),
-    TE.flatMap(verifyToken(redis)(config.jwtSecret)),
-    TE.flatMap(token => getUserById(data)(token.id)),
+    TE.chain(verifyToken(redis)(config.jwtSecret)),
+    TE.chain(token => getUserById(data)(token.id)),
     TE.map(user => ({ user })),
 )
 
