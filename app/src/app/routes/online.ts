@@ -1,34 +1,34 @@
-import * as E from 'fp-ts/Either'
+import * as O from 'fp-ts/Option'
 import * as TE from 'fp-ts/TaskEither'
 import { DataSource } from 'typeorm'
 import { pipe } from 'fp-ts/lib/function'
 
-import { RedisClient } from '@/app/data/redis'
 import { getOnline } from '@/app/misc/timer'
 
 type OnlineResponse = {
     online: number,
 }
 
-type OnlineRoute = (d: DataSource) => (r: RedisClient) => (req: unknown) => (
+type OnlineRoute = (d: DataSource) => (req: unknown) => (
     TE.TaskEither<Error, OnlineResponse>
 )
 
-export const onlineRoute: OnlineRoute = data => redis => () => pipe(
-    TE.tryCatch(() => redis.get('online.updated'), E.toError),
-    TE.map(value => value ? parseInt(value, 10) : null),
-    TE.chain(updated => updated && Date.now() - updated < 60000
-        ? pipe(
-            TE.tryCatch(() => redis.get('online.value'), E.toError),
-            TE.map(value => value ? parseInt(value, 10) : null),
-        )
-        : TE.right(null)),
-    TE.chain(online => online != null
-        ? TE.right(online)
-        : pipe(
+let online = 1
+let updated = 0
+
+export const onlineRoute: OnlineRoute = data => () => pipe(
+    Date.now() - updated < 60000 ? online : null,
+    O.fromNullable,
+    O.fold(
+        () => pipe(
             getOnline(data),
-            TE.tap(value => TE.tryCatch(() => redis.set('online.value', value), E.toError)),
-            TE.tap(() => TE.tryCatch(() => redis.set('online.updated', Date.now()), E.toError)),
-        )),
-    TE.map(online => ({ online })),
+            TE.tap(value => {
+                online = value || 1
+                updated = Date.now()
+                return TE.right(value)
+            }),
+        ),
+        () => TE.right(online),
+    ),
+    TE.map(val => ({ online: val })),
 )

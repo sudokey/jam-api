@@ -52,6 +52,9 @@
             }
         ],
         "unused-imports/no-unused-imports-ts": "error",
-        "no-confusing-arrow": "off"
+        "no-confusing-arrow": "off",
+        "no-return-assign": "off",
+        "no-plusplus": "off",
+        "no-constant-condition": "off"
     }
 }

@@ -7,9 +7,10 @@ import { createRedisClient } from '@/app/data/redis'
 import { createCode } from '@/app/routes/code'
 import { createSmtpTransporter } from '@/app/misc/mailer'
 import { createToken } from '@/app/routes/token'
-import { getUserRoute, updateUserRoute } from '@/app/routes/uset'
+import { getUserRoute, updateUserRoute } from '@/app/routes/user'
 import { createTimerRoute, stopTimerRoute, timersRoute } from '@/app/routes/timer'
 import { onlineRoute } from '@/app/routes/online'
+import { statsRoute } from '@/app/routes/stats'
 
 const { fastifyFunky } = require('@fastify/funky')
 
@@ -34,7 +35,8 @@ fastify.post('/api/v1/user', updateUserRoute(redisClient)(dataSource)(config))
 fastify.post('/api/v1/timer', createTimerRoute(dataSource)(redisClient)(config))
 fastify.post('/api/v1/timer/stop', stopTimerRoute(dataSource)(redisClient)(config))
 fastify.get('/api/v1/timers', timersRoute(dataSource)(redisClient)(config))
-fastify.get('/api/v1/timer/online', onlineRoute(dataSource)(redisClient)(config));
+fastify.get('/api/v1/timer/online', onlineRoute(dataSource))
+fastify.get('/api/v1/user/:id/stats', statsRoute(dataSource)(redisClient)(config));
 
 (async () => {
     try {
